@@ -75,9 +75,10 @@ module.exports.run = async (client, message, args) => {
 
         //go through each hit and check if any of the input matches the title
         let titleArr = []
-        let songTitle, songTitle2, songID, songURL
+        let songTitle, songTitle2, songID, songURL, t
         hit.forEach(function (songTitle, i) {
-            titleArr = functions.string_to_array(songTitle)
+            t = functions.capitalize(songTitle)
+            titleArr = functions.string_to_array(t)
             if (functions.containsAny(titleArr, messageArr) === true) {
                 //set variables
                 songTitle2 = hits[i].result.full_title
@@ -90,6 +91,10 @@ module.exports.run = async (client, message, args) => {
         // console.log(songID)
         console.log(songURL)
 
+        if(typeof songURL == undefined){
+          return message.channel.send("Can't find song.")
+        }
+      
         //create embed_mgs
         let bad_embed = new Discord.RichEmbed()
             .setTimestamp()
