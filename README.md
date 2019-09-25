@@ -18,6 +18,7 @@ In development:
 - `Setup a default channel`
 - `Help command`
 - `Tag the bot to get the current prefix`
+- `Check if title compairs to api.title`
 
 Build with love <3 by:
 -------------------

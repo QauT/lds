@@ -18,7 +18,7 @@ module.exports.run = async (client, message, args) => {
             .addField("Join date", functions.date(message.guild.joinedAt), true)
             .addField("Current Uptime", functions.uptimeProcess(), true)
             .addField("Bot Creators", "Fluxpuck#9999\nTheFallenShade#5557\nVictor L#0001")
-            .setColor(botconfig.embed_color)
+            .setColor(defaultconfig.embed_color)
             .setThumbnail(client.user.avatarURL)
             .setTimestamp()
             .setFooter(client.user.username, client.user.avatarURL)

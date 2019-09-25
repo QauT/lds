@@ -19,6 +19,22 @@ module.exports.run = async (client, message, args) => {
     });
     let msg_title = messageArr.toString().replace(/[&\/\\#,+()$~%.":*?<>{}]/g, ' ').trim()
 
+    // Removal of [official audio] , [official video] etc
+    msg_title = msg_title.toLowerCase();
+    let officialsToRemove = ["[official audio]", "[official video]", "[official music video]", "[monstercat realease]", "[monstercat Official Music Video]", "[NCS Release]", "(official music video)", "(original mix)", "(official video)", "(official audio)", "(official videoclip)"];
+    officialsToRemove.forEach((term) => {
+      if (msg_title.includes(term.toLowerCase())) {
+        msg_title = msg_title.replace(term, ' ').trim();
+      }
+    })
+  
+    let msg_titleArr = msg_title.split(" ");
+    msg_title = "";
+    msg_titleArr.forEach((word) => {
+      msg_title += functions.capitalize(word);
+      msg_title += " "
+    })
+    
     //fetching-message
     message.channel.send("Checking lyrics for " + msg_title + "...")
         .then(msg => {
@@ -40,29 +56,42 @@ module.exports.run = async (client, message, args) => {
         }
     };
 
-    //fetch song details
+   //fetch song details
     request(options, function (error, response, body) {
         if (error) throw new Error(error);
 
         let meta = JSON.parse(body)
         let hits = meta.response.hits
-        let titleArr = [], songID, song_api_url, songURL
 
-        if (!hits[0].result.full_title) {
-            return message.channel.send("No song found with this Title, try to adjust the title. Make sure to remove [official video] and other Youtube details. Just put the artist and the songs title.")
+        //write serverlist
+        let data = JSON.stringify(meta);
+        fs.writeFileSync('./_json/test.json', data);
+
+        //put every hit in an Array
+        let hit = []
+        for (i in hits) {
+            hit.push(hits[i].result.title)
         }
 
-        //set variables
-        songTitle = hits[0].result.full_title
-        songID = hits[0].result.id
-        songAPIURL = hits[0].result.api_path
-        songURL = hits[0].result.url
+        //go through each hit and check if any of the input matches the title
+        let titleArr = []
+        let songTitle, songTitle2, songID, songURL
+        hit.forEach(function (songTitle, i) {
+            titleArr = functions.string_to_array(songTitle)
+            if (functions.containsAny(titleArr, messageArr) === true) {
+                //set variables
+                songTitle2 = hits[i].result.full_title
+                songID = hits[i].result.id
+                songURL = hits[i].result.url
+            }
+        });
 
+        // console.log(songTitle2)
+        // console.log(songID)
         console.log(songURL)
 
         //create embed_mgs
         let bad_embed = new Discord.RichEmbed()
-            .setTitle("LYRICS " + songTitle)
             .setTimestamp()
             .setFooter(client.user.username, client.user.avatarURL)
 
@@ -74,12 +103,13 @@ module.exports.run = async (client, message, args) => {
 
                 //fetch lyrics from website Genius!
                 let lyricsText = $('.lyrics > p', html).text()
-                let lyricsRep = lyricsText.replace(/\n/g, ' ').trim()
-                let lyricsArr = functions.string_to_array(lyricsRep)
+                let lyricsRep1 = lyricsText.replace(/\n/g, ' ').trim()
+                let lyricsRep2 = lyricsRep1.replace(/[&\/\\#,+()$~%.":*?<>{}]/g, ' ').trim().toLowerCase()
+                let lyricsArr = functions.string_to_array(lyricsRep2)
                 let badwords = JSON.parse(fs.readFileSync("./_json/badword_list.json", "utf8"))
 
                 // write results
-                let d1 = JSON.stringify(lyricsRep);
+                let d1 = JSON.stringify(lyricsRep2);
                 fs.writeFileSync('./_json/lyrics_text.json', d1);
 
                 // write results
@@ -104,14 +134,16 @@ module.exports.run = async (client, message, args) => {
                 //if there are bad songs, send message with words.
                 if (functions.containsAny(lyricsArr, badwords) === true) {
 
-                    bad_embed.setDescription("❌ Has the following bad words: \n > " + badwordss)
+                    bad_embed.setTitle("❌ This song is not PG!")
+                    bad_embed.addField(songTitle2, "Words found:\n > " + badwordss + "\n" + songURL)
                     bad_embed.setColor(defaultconfig.embed_color_bad)
                     bad_embed.setThumbnail(defaultconfig.embed_img_bad)
 
                     message.channel.send(bad_embed)
                 } else {
 
-                    bad_embed.setDescription("✅ This song is clean!")
+                    bad_embed.setTitle("✅ This song is clean!")
+                    bad_embed.addField(songTitle2, songURL)
                     bad_embed.setColor(defaultconfig.embed_color_good)
                     bad_embed.setThumbnail(defaultconfig.embed_img_good)
 
@@ -122,11 +154,7 @@ module.exports.run = async (client, message, args) => {
 
             .catch(function (err) {
                 console.log("rp error msg: " + err)
-                message.channel.send("An Error Occured.")
             });
-
-
-
 
     });
 
