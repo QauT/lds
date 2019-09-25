@@ -86,6 +86,14 @@ module.exports.run = async (client, message, args) => {
                 songURL = hits[i].result.url
             }
         });
+      
+       //if no match, send message
+        if (!songTitle2 && !songID && !songURL) {
+            return message.channel.send("⚠ " + msg_title + " wasn't found! Try reprhasing it...")
+                .then(msg => {
+                    msg.delete(4000)
+                })
+        }
 
         // console.log(songTitle2)
         // console.log(songID)
