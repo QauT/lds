@@ -106,6 +106,7 @@ module.exports.run = async (client, message, args) => {
         //create embed_mgs
         let bad_embed = new Discord.RichEmbed()
             .setTimestamp()
+            .setDescription("⚠ Deprecated! Please use `_scan [song title + artist]`")
             .setFooter(client.user.username, client.user.avatarURL)
 
 
