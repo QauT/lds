@@ -86,11 +86,13 @@ module.exports.run = async (client, message, args) => {
                 songTitle = hit.result.title
                 songID = hit.result.id
                 songURL = hit.result.url
+
             }
             resultArr.push({ songID, songURL, songTitle, artistName })
         }
 
         //filters checked titles to remove commentary, mixes, playlist(s), etc.
+        let filterArr = []
         let songID, songURL, songTitle, artistName
         var filtered = resultArr.filter(function (value, index, arr) {
             if (value.songID && value.songURL !== "undefined") {
@@ -100,17 +102,49 @@ module.exports.run = async (client, message, args) => {
                 let filtered_result = value.songURL.substring(filtered_url + 1)
                 let filtered_title = filtered_result.toLowerCase().replace(/[&\/\\#,+()$~%."-:*?<>{}]/g, ' ').trim()
 
+                // console.log(filtered_title)
+
+                //check is checklist item is in the title and filter those out
                 let filtered_titleArr = functions.string_to_array(filtered_title)
                 let checkList = JSON.parse(fs.readFileSync("./_json/checklist.json", "utf8"))
                 if (functions.containsAny(filtered_titleArr, checkList) === false) {
+                    //filter out undefined values and get the shortest string
+                    if (songTitle != undefined) {
+                        filterArr.push({ songID, songURL, songTitle, artistName })
+                    }
+
                     songID = value.songID
                     songURL = value.songURL
                     songTitle = value.songTitle
                     artistName = value.artistName
+
                 }
 
             }
         });
+
+        // console.log(filterArr)
+
+        //counting string length of the songTitle and catch the lowest string value,
+        //to remove all other left over posibilities
+        let countArr = []
+        filterArr.forEach(function (value, i) {
+            let str = value.songTitle
+            let s = str.length
+            let min = Math.min(s)
+            countArr.push(min)
+        })
+        let min = Math.min(...countArr)
+        for (i in filterArr) {
+            let str = filterArr[i].songTitle
+            let s = str.length
+            if (s === min) {
+                songID = filterArr[i].songID
+                songURL = filterArr[i].songURL
+                songTitle = filterArr[i].songTitle
+                artistName = filterArr[i].artistName
+            }
+        }
 
         console.log(songTitle + " - " + artistName + " | " + songID + " | " + songURL)
 
@@ -167,7 +201,7 @@ module.exports.run = async (client, message, args) => {
                 if (functions.containsAny(lyricsArr, badwords) === true) {
 
                     scanMessage_embed.setTitle("❌ This song is not PG!")
-                    scanMessage_embed.addField(`${songTitle} by ${artistName}`, "Words found:\n > " + badwordss + "\n" + songURL)
+                    scanMessage_embed.addField(`${songTitle} - ${artistName}`, "Words found:\n > " + badwordss + "\n" + songURL)
                     scanMessage_embed.setColor(defaultconfig.embed_color_bad)
                     scanMessage_embed.setThumbnail(defaultconfig.embed_img_bad)
 
@@ -175,7 +209,7 @@ module.exports.run = async (client, message, args) => {
                 } else {
 
                     scanMessage_embed.setTitle("✅ This song is clean!")
-                    scanMessage_embed.addField(`${songTitle} by ${artistName}`, songURL)
+                    scanMessage_embed.addField(`${songTitle} - ${artistName}`, songURL)
                     scanMessage_embed.setColor(defaultconfig.embed_color_good)
                     scanMessage_embed.setThumbnail(defaultconfig.embed_img_good)
 
