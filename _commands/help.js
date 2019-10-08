@@ -8,9 +8,9 @@ module.exports.run = async (client, message, args) => {
   .setAuthor(client.user.username);
   let availableCommands = "";
   client.commands.forEach((cmd) => {
-    availableCommands += `${cmd.help.name} `;
+    availableCommands += `${cmd.help.name} | `;
   })
-  availableCommands = availableCommands.substring(0, availableCommands.length - 1); // Remove the unnecessary space.
+  availableCommands = availableCommands.substring(0, availableCommands.length - 3); // Remove the unnecessary space.
   helpEmbed.addField("Available Commands:", `${availableCommands}`);
   message.channel.send({embed: helpEmbed});
 }

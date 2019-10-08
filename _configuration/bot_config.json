@@ -1,4 +1,6 @@
 {
     "prefix": "_",
-    "version": "1.4.0"
+    "version": "1.4.0",
+    "google_API_key": "AIzaSyDlxtcRuYwfxaqDriTq_CzZp4EjwdIJmAE",
+    "google_projectID": "908387320954"
 }
